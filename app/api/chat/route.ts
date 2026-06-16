@@ -1,11 +1,85 @@
-import { 
-  AuthStorage, 
-  createAgentSession, 
-  ModelRegistry, 
-  SessionManager 
+import {
+  AuthStorage,
+  createAgentSession,
+  ModelRegistry,
+  SessionManager
 } from "@earendil-works/pi-coding-agent";
 import { getModel } from "@earendil-works/pi-ai";
 import { checkInput, checkOutput } from "@/lib/guardrails";
+import { Type } from "typebox";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+const deployToVercelTool = {
+  name: "deployToVercel",
+  label: "Deploy to Vercel",
+  description: "Deploys the current project to Vercel. Use this tool when the user asks to deploy, redeploy, or publish their app to Vercel.",
+  parameters: Type.Object({
+    prod: Type.Optional(
+      Type.Boolean({
+        description: "Whether to deploy to production. Defaults to true.",
+      })
+    ),
+  }),
+  async execute(toolCallId: string, params: { prod?: boolean }) {
+    try {
+      const deployProd = params.prod !== false;
+      const cmd = deployProd ? "npx vercel --prod --yes" : "npx vercel --yes";
+
+      const { stdout, stderr } = await execAsync(cmd, {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          HOME: "/tmp",
+          npm_config_cache: "/tmp/.npm",
+        },
+      });
+
+      const output = stdout + "\n" + stderr;
+      const urlMatch = output.match(/https:\/\/[a-zA-Z0-9-]+\.vercel\.app/);
+      const url = urlMatch ? urlMatch[0] : "";
+
+      if (!url) {
+        const genericUrlMatch = output.match(/https:\/\/\S+/);
+        if (genericUrlMatch) {
+          return {
+            success: true,
+            url: genericUrlMatch[0],
+            content: [{ type: "text" as const, text: `Successfully deployed to ${genericUrlMatch[0]}` }],
+            details: undefined,
+          };
+        }
+        throw new Error("Could not extract deployment URL from output:\n" + output);
+      }
+
+      return {
+        success: true,
+        url,
+        content: [{ type: "text" as const, text: `Successfully deployed to ${url}` }],
+        details: undefined,
+      };
+    } catch (error: unknown) {
+      const err = error as { stdout?: string; stderr?: string; message?: string };
+      const output = (err.stdout || "") + "\n" + (err.stderr || "") + "\n" + (err.message || String(error));
+      let userFriendlyError = err.message || String(error);
+
+      if (output.includes("token is not valid") || output.includes("Use `vercel login`")) {
+        userFriendlyError = "Vercel CLI is not authenticated. Please run `npx vercel login` in your terminal to log in first.";
+      } else if (output.includes("Link to existing project") || output.includes("No project linked")) {
+        userFriendlyError = "Project is not linked to Vercel. Please run `npx vercel link` in your terminal first.";
+      }
+
+      return {
+        success: false,
+        error: userFriendlyError,
+        content: [{ type: "text" as const, text: `Deployment failed: ${userFriendlyError}` }],
+        details: undefined,
+      };
+    }
+  },
+};
 
 export const runtime = "nodejs";
 
@@ -52,13 +126,15 @@ export async function POST(req: Request) {
     }
 
     const modelRegistry = ModelRegistry.create(authStorage);
-    const model = getModel("google", "gemini-2.5-flash");
+    const modelName = (process.env.GEMINI_MODEL || "gemini-2.5-flash") as Parameters<typeof getModel>[1];
+    const model = getModel("google", modelName);
 
     const { session } = await createAgentSession({
       sessionManager: SessionManager.inMemory(),
       authStorage,
       modelRegistry,
       model,
+      customTools: [deployToVercelTool],
     });
 
     function formatChunk(type: string, value: string): string {
@@ -102,10 +178,24 @@ export async function POST(req: Request) {
               const argStr = event.args ? JSON.stringify(event.args) : "";
               const toolMarker = `\n\n\`\`\`bash\n[Executing Tool: ${event.toolName} ${argStr}]\n\`\`\`\n\n`;
               controller.enqueue(encoder.encode(formatChunk("0", toolMarker)));
+
+              const toolCall = {
+                toolCallId: event.toolCallId,
+                toolName: event.toolName,
+                args: event.args || {},
+              };
+              controller.enqueue(encoder.encode(`9:${JSON.stringify(toolCall)}\n`));
             } else if (event.type === "tool_execution_end") {
               const statusStr = event.isError ? "Failed ❌" : "Done ✅";
               const toolMarker = `\n\n\`\`\`bash\n[Tool Finished: ${event.toolName} - ${statusStr}]\n\`\`\`\n\n`;
               controller.enqueue(encoder.encode(formatChunk("0", toolMarker)));
+
+              const toolResult = {
+                toolCallId: event.toolCallId,
+                toolName: event.toolName,
+                result: event.result || { success: !event.isError },
+              };
+              controller.enqueue(encoder.encode(`a:${JSON.stringify(toolResult)}\n`));
             } else if (event.type === "agent_end") {
               cleanup();
             }
