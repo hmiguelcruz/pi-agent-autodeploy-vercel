@@ -32,8 +32,8 @@ const deployToVercelTool = {
         cwd: process.cwd(),
         env: {
           ...process.env,
-          HOME: "/tmp",
-          npm_config_cache: "/tmp/.npm",
+          HOME: process.env.HOME || "/tmp",
+          npm_config_cache: process.env.npm_config_cache || "/tmp/.npm",
         },
       });
 
@@ -212,7 +212,17 @@ export async function POST(req: Request) {
           console.error("Agent session prompt error:", error);
           if (!isClosed) {
             try {
-              const errorMsg = error instanceof Error ? error.message : "Session error";
+              let errorMsg = error instanceof Error ? error.message : "Session error";
+              const lowerMsg = errorMsg.toLowerCase();
+              if (
+                lowerMsg.includes("quota") ||
+                lowerMsg.includes("429") ||
+                lowerMsg.includes("resource_exhausted") ||
+                lowerMsg.includes("rate limit") ||
+                lowerMsg.includes("limit exceeded")
+              ) {
+                errorMsg = "AI Quota limit reached. Please wait a moment or try again later.";
+              }
               const errorMarker = `\n\n⚠️ Error during execution: ${errorMsg}\n`;
               controller.enqueue(encoder.encode(formatChunk("0", errorMarker)));
             } catch (e) {}
@@ -239,7 +249,17 @@ export async function POST(req: Request) {
     });
   } catch (error: unknown) {
     console.error("Chat API error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    let errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    const lowerMsg = errorMessage.toLowerCase();
+    if (
+      lowerMsg.includes("quota") ||
+      lowerMsg.includes("429") ||
+      lowerMsg.includes("resource_exhausted") ||
+      lowerMsg.includes("rate limit") ||
+      lowerMsg.includes("limit exceeded")
+    ) {
+      errorMessage = "AI Quota limit reached. Please wait a moment or try again later.";
+    }
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

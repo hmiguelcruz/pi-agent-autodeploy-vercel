@@ -5,7 +5,7 @@ export async function GET() {
     JSON.stringify({
       status: "ok",
       timestamp: new Date().toISOString(),
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
     }),
     {
       status: 200,
