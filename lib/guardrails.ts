@@ -38,6 +38,7 @@ export const BANNED_TOPICS = [
   "how to synthesize drugs",
   "how to hack into",
   "how to bypass security",
+  "nuclear codes",
 ];
 
 export function checkInput(message: string, turnIndex: number): GuardrailResult {
