@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "π Agent Clone",
-  description: "A minimal AI coding agent with active safety guardrails.",
+  title: "Pi Agent - AutoDeploy Vercel",
+  description: "AutoDeploy Vercel",
 };
 
 export default function RootLayout({

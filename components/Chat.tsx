@@ -102,7 +102,7 @@ export default function Chat() {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
-          π <span className={styles.logoSub}>agent</span>
+          π <span className={styles.logoSub}>Agent</span>
         </div>
         <div className={styles.badge}>
           <span className={styles.badgeDot}></span>
@@ -114,9 +114,9 @@ export default function Chat() {
       <div className={styles.messages} ref={messagesContainerRef}>
         {messages.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.welcomeTitle}>Welcome to π agent</p>
+            <p className={styles.welcomeTitle}>Welcome to Pi Agent</p>
             <p className={styles.welcomeSub}>
-              A secure, streaming AI coding assistant. Ask me anything, or try testing safety rules.
+              A secure, streaming AI coding assistant.
             </p>
           </div>
         ) : (
@@ -198,7 +198,7 @@ export default function Chat() {
           <div className={styles.inputContainer}>
             <textarea
               className={styles.textarea}
-              placeholder={isLoading ? "Streaming response..." : "Ask π agent a question..."}
+              placeholder={isLoading ? "Streaming response..." : "Ask Pi Agent a question..."}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
