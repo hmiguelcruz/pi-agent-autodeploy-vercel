@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;600&display=swap');
+
+:root {
+  --bg: #0d0d0d;
+  --surface: #141414;
+  --border: #252525;
+  --text: #e8e8e8;
+  --muted: #666;
+  --accent: #7c6aff;
+  --user-bubble: #1a1a2e;
+  --bot-bubble: #141414;
+  --danger: #ff4d4d;
+  --success: #3ddc84;
+  --mono: "JetBrains Mono", "Fira Code", monospace;
+  --sans: "Outfit", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
