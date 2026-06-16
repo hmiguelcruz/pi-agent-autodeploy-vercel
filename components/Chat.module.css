@@ -274,3 +274,37 @@
   color: var(--muted);
   cursor: not-allowed;
 }
+
+.toolContainer {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  font-family: var(--mono);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+
+.toolSuccess {
+  color: var(--success);
+}
+
+.toolError {
+  color: var(--danger);
+}
+
+.toolLink {
+  color: var(--accent);
+  text-decoration: underline;
+}
+

@@ -132,6 +132,50 @@ export default function Chat() {
                 </div>
                 <div className={styles.bubble}>
                   {formatMessageContent(m.content)}
+                  {m.toolInvocations?.map((toolInvocation) => {
+                    const { toolName, toolCallId, state } = toolInvocation;
+                    if (toolName === "deployToVercel") {
+                      return (
+                        <div key={toolCallId} className={styles.toolContainer}>
+                          {state !== "result" ? (
+                            <div className={styles.toolLoading}>
+                              <span className={styles.cursor}>▋</span>
+                              <span>Deploying project to Vercel...</span>
+                            </div>
+                          ) : (
+                            <div>
+                              {toolInvocation.result.success ? (
+                                <div className={styles.toolSuccess}>
+                                  <div>✅ Deployment successful!</div>
+                                  <div>
+                                    URL:{" "}
+                                    <a
+                                      href={toolInvocation.result.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={styles.toolLink}
+                                    >
+                                      {toolInvocation.result.url}
+                                    </a>
+                                  </div>
+                                  {toolInvocation.result.simulated && (
+                                    <div style={{ opacity: 0.6, fontSize: "11px", marginTop: "4px" }}>
+                                      (Simulated assessment deployment)
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className={styles.toolError}>
+                                  ❌ Deployment failed: {toolInvocation.result.error}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
                   {isLoading && isLast && !isUser && (
                     <span className={styles.cursor}>▋</span>
                   )}
