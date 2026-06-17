@@ -4,7 +4,7 @@ A minimal AI coding agent inspired by pi.dev, built with Next.js 15, Vercel AI S
 
 ## Features
 - **Guardrail Layer**: Single source of truth safety checks (input size, banned topics/patterns, response redacts).
-- **Edge API Streaming**: Super-fast streaming responses from `gemini-1.5-flash` using `@ai-sdk/google` under Vercel Edge functions.
+- **Edge API Streaming**: Super-fast streaming responses from `gemini-2.5-flash` using `@ai-sdk/google` under Vercel Edge functions.
 - **Dark Terminal Theme**: Minimalist interface using CSS variables, custom cursors, and font styling (JetBrains Mono).
 
 ---
@@ -108,5 +108,5 @@ Modify the `SYSTEM_PROMPT` string in `lib/guardrails.ts`.
 
 ## Cost Management
 - Running on Vercel Hobby tier is completely free (Edge runtime and stream capabilities are fully included).
-- Powered by Google Gemini 1.5 Flash: free tier includes up to 15 Requests Per Minute (RPM) and 1M Tokens Per Minute (TPM).
+- Powered by Google Gemini 2.5 Flash: free tier includes up to 15 Requests Per Minute (RPM) and 1M Tokens Per Minute (TPM).
 - To enforce maximum budget safety limits, adjust `MAX_TOKENS=512` in `.env.local`.
